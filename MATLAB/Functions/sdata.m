@@ -5,13 +5,13 @@ function [newexpr] = sdata(expr, varargin)
     allvars = {nu, Y_p, epsilon_p, epsilon_f, EBD_p, EBD_f, l_0, w, tp_0};
     values = {
         0.3         , ... nu
-        4.5e5       , ... Y_p
+        1.5e9       , ... Y_p
         4.5 * eps_0 , ... epsilon_p
-        80 * eps_0  , ... epsilon_f
-        70e6        , ... EBD_p
-        30e3 / 0.5e-3        , ... EBD_f
+        2.5 * eps_0  , ... epsilon_f
+        500e6      , ... EBD_p
+        100e6       , ... EBD_f
         50e-3 / 2   , ... l_0
-        1           , ... w
+        10e-2           , ... w
         25e-6       , ... tp_0
     };
     
