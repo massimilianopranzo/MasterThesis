@@ -1,8 +1,7 @@
 
 sympref('AbbreviateOutput', false);
 
-addpath("Dummy_functions\");
-addpath("Functions\");
+addpath("Functions and Scripts\");
 
 set(groot,'defaultAxesXGrid','on');
 set(groot,'defaultAxesYGrid','on');
@@ -20,3 +19,5 @@ set(0,'DefaultFigureWindowStyle','docked');
 set(0,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
+set(groot, 'DefaultTextInterpreter', 'latex')
+
