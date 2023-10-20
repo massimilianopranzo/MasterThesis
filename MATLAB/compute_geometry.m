@@ -2,7 +2,7 @@ function [varargout] = compute_geometry(t_f, varargin)
     syms epsilon_1(x) epsilon_2(x) epsilon_3(x) w_0 tp_0 l_0 epsilon_p epsilon_f xi xi_0
     if length(varargin) == 1
         switch varargin{1}
-            case "PLANE_STRESS"
+            case "PSTRESS"
                 pstress.l = l_0 * (1 + epsilon_1(x));
                 pstress.t_p = tp_0 * (1 + epsilon_3(x));
                 pstress.w = w_0;
@@ -14,7 +14,7 @@ function [varargout] = compute_geometry(t_f, varargin)
                 pstress.C = int(pstress.dC, xi);
                 pstress.C = subs(pstress.C, xi, xi_0 + l_0) - subs(pstress.C, xi, xi_0);    
                 varargout{1} = pstress;
-            case "PLANE_STRAIN"
+            case "PSTRAIN"
                 pstrain.l = l_0 * (1 + epsilon_1(x));
                 pstrain.t_p = tp_0;
                 pstrain.w = w_0 * (1 + epsilon_2(x));

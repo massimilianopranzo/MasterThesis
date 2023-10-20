@@ -2,6 +2,7 @@
 sympref('AbbreviateOutput', false);
 
 addpath("Functions and Scripts\");
+addpath("1DOF\");
 
 set(groot,'defaultAxesXGrid','on');
 set(groot,'defaultAxesYGrid','on');
