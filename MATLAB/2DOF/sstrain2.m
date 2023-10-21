@@ -1,7 +1,7 @@
-function [newexpr] = sstrain1(expr, varargin)
-    syms x l_0 nu tf_0 Y_p sigma_1(x) sigma_2(x) epsilon_1(x) epsilon_2(x) epsilon_3(x)
+function [newexpr] = sstrain2(expr, varargin)
+    syms x l_0 l_c nu tf_0 Y_p sigma_1(x) sigma_2(x) epsilon_1(x) epsilon_2(x) epsilon_3(x)
     
-    eps1 = -1 + sqrt(1 + ((x - tf_0) / (2 * l_0))^2);
+    eps1 = (x - tf_0)^2 / (8 * l_0 * (l_0 - l_c));
     
     if isempty(varargin) || upper(varargin{1}) == "PSTRAIN"
         s1 = - Y_p * eps1 / (nu^2 - 1);

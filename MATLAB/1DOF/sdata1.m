@@ -25,7 +25,7 @@ function [newexpr] = sdata1(expr, varargin)
     end
 
 
-    isdefcond = nargin >= 2 && (strcmp(upper(varargin{1}), 'PSTRAIN') || strcmp(upper(varargin{1}), 'PSTRESS'));
+    isdefcond = nargin>=2 && (strcmp(upper(varargin{1}), 'PSTRAIN') || strcmp(upper(varargin{1}), 'PSTRESS'));
     if nargin == 1
         newexpr = subs(expr, allvars, values);
         
@@ -33,7 +33,7 @@ function [newexpr] = sdata1(expr, varargin)
         newexpr = sstrain1(expr, varargin{1});
         newexpr = subs(newexpr, allvars, values);
         
-    elseif nargin >= 2 && sum(ismember(string(allvars), string(varargin{1}))) >= 1
+    elseif nargin >= 2 && sum(ismember(string(allvars), string(varargin{1}))) >= 1 && ~isnumeric(varargin{2})
         if allvars{end} == x && sum(contains(string(expr), ["epsilon_1", "epsilon_2", "epsilon_3", "sigma_1", "sigma_2", "sigma_3"])) >= 1
             expr = sstrain1(expr, 'PSTRAIN');
             warning('Provided x without deformation condition, PSTRAIN has been assumed.')
@@ -42,13 +42,13 @@ function [newexpr] = sdata1(expr, varargin)
         selected_vars = sym2cell(str2sym(selected_vars));
         selected_values = values(idx);
         newexpr = subs(expr, selected_vars, selected_values);
-        
-    elseif nargin >= 2 && isdefcond && sum(ismember(string(allvars), string(varargin{2}))) >= 1
-        newexpr = sstrain1(expr, varargin{1});
-        [selected_vars, idx] = intersect(string(allvars), string(varargin));
-        selected_vars = sym2cell(str2sym(selected_vars));
-        selected_values = values(idx);
-        newexpr = subs(newexpr, selected_vars, selected_values);
+
+    elseif nargin >= 2 && sum(ismember(string(allvars), string(varargin{1}))) >= 1 && isnumeric(varargin{2})
+        if allvars{end} == x && sum(contains(string(expr), ["epsilon_1", "epsilon_2", "epsilon_3", "sigma_1", "sigma_2", "sigma_3"])) >= 1
+            expr = sstrain1(expr, 'PSTRAIN');
+            warning('Provided x without deformation condition, PSTRAIN has been assumed.')
+        end
+        newexpr = subs(expr, varargin{1:2:end}, varargin{2:2:end});
         
     elseif nargin >= 3 && strcmp(varargin{1}, 'except')
         varargin = string(varargin); varargin = varargin(2:end);
@@ -56,7 +56,17 @@ function [newexpr] = sdata1(expr, varargin)
         selected_vars = sym2cell(str2sym(selected_vars));
         selected_values = values(idx);
         newexpr = subs(expr, selected_vars, selected_values); 
-        
+    
+    elseif nargin >= 4 && isdefcond && sum(ismember(string(allvars), string(varargin{2}))) >= 1 && isnumeric(varargin{3})
+        newexpr = sstrain1(expr, varargin{1});
+        newexpr = subs(newexpr, varargin{2:2:end}, varargin{3:2:end});
+    
+    elseif nargin >= 4 && isdefcond && sum(ismember(string(allvars), string(varargin{2}))) >= 1 && ~isnumeric(varargin{3})
+        newexpr = sstrain1(expr, varargin{1});
+        [selected_vars, idx] = intersect(string(allvars), string(varargin));
+        selected_vars = sym2cell(str2sym(selected_vars));
+        selected_values = values(idx);
+        newexpr = subs(newexpr, selected_vars, selected_values);
     elseif nargin >= 4 && isdefcond && strcmp(varargin{2}, 'except')
         newexpr = sstrain1(expr, varargin{1});
         varargin = string(varargin); varargin = varargin(3:end);
@@ -68,14 +78,5 @@ function [newexpr] = sdata1(expr, varargin)
         error('Wrong input arguments');
     end
         
-
-    
-%     if isempty(symvar(newexpr))
-%         newexpr = double(vpa(newexpr, 4));
-%     end
-
-
-
-
 end
 
