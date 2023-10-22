@@ -3,15 +3,15 @@ function [varargout] = compute_geometry2(t_f, varargin)
     if length(varargin) == 1
         switch varargin{1}
             case "PSTRAIN"
-                pstrain.l = l_0 * (1 + epsilon_1(x));
                 pstrain.w = w_0;
                 pstrain.t_p = tp_0 * (1 + epsilon_3(x));
                 pstrain.l_a = (l_0 - l_c) + (x - tf_0)^2 / (8 * (l_0 - l_c));
-                pstrain.A = pstrain.l * pstrain.w;
+                pstrain.A1 = l_c  * pstrain.w;
+                pstrain.A2 = pstrain.l_a  * pstrain.w;
                 dA = pstrain.w * (1 + epsilon_1(x)); % * dxi
 
-                pstrain.Cp1 = pstrain.A * epsilon_p / tp_0;
-                pstrain.Cf1 = pstrain.A * epsilon_f / t_f(tf_0);
+                pstrain.Cp1 = pstrain.A1 * epsilon_p / tp_0;
+                pstrain.Cf1 = pstrain.A1 * epsilon_f / t_f(tf_0);
                 pstrain.C1 = ((2 / pstrain.Cp1) + (1 / pstrain.Cf1)) ^ (-1);
 
                 pstrain.dCp2 = dA * epsilon_p / pstrain.t_p;

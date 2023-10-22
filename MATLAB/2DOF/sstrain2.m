@@ -6,13 +6,15 @@ function [newexpr] = sstrain2(expr, varargin)
     if isempty(varargin) || upper(varargin{1}) == "PSTRAIN"
         s1 = - Y_p * eps1 / (nu^2 - 1);
         s2 = - Y_p * nu * eps1 / (nu^2 - 1);
+        eps2 = 0;
         eps3 = eps1 * nu / (nu - 1);
-        newexpr = subs(expr, {sigma_1, sigma_2, epsilon_1, epsilon_3}, {s1, s2, eps1, eps3});
+        newexpr = subs(expr, {sigma_1, sigma_2, epsilon_1, epsilon_2, epsilon_3}, {s1, s2, eps1, eps2, eps3});
     elseif upper(varargin{1}) == "PSTRESS"
         s1 = Y_p * eps1;
+        s2 = 0;
         eps2 = - eps1 * nu;
         eps3 = - eps1 * nu;
-        newexpr = subs(expr, {sigma_1, epsilon_1, epsilon_2, epsilon_3}, {s1, eps1, eps2, eps3});
+        newexpr = subs(expr, {sigma_1, sigma_2, epsilon_1, epsilon_2, epsilon_3}, {s1, s2, eps1, eps2, eps3});
     else
         error("Incorrect deformation condition.")
     end    
