@@ -1,98 +1,64 @@
 function [varargout] = compute_geometry2(t_f, varargin)
-    syms epsilon_1(x) epsilon_2(x) epsilon_3(x) w_0 tp_0 tf_0 l_0 l_c epsilon_p epsilon_f xi xi_0
+    syms epsilon_2(x) epsilon_3(x) w_0 tp_0 
+    
     if length(varargin) == 1
         switch varargin{1}
-            case "PSTRAIN"
+            case "PSTRAIN" % epsilon_2 = 0
                 pstrain.w = w_0;
                 pstrain.t_p = tp_0 * (1 + epsilon_3(x));
-                pstrain.l_a = (l_0 - l_c) + (x - tf_0)^2 / (8 * (l_0 - l_c));
-                pstrain.A1 = l_c  * pstrain.w;
-                pstrain.A2 = pstrain.l_a  * pstrain.w;
-                dA = pstrain.w * (1 + epsilon_1(x)); % * dxi
-
-                pstrain.Cp1 = pstrain.A1 * epsilon_p / tp_0;
-                pstrain.Cf1 = pstrain.A1 * epsilon_f / t_f(tf_0);
-                pstrain.C1 = ((2 / pstrain.Cp1) + (1 / pstrain.Cf1)) ^ (-1);
-
-                pstrain.dCp2 = dA * epsilon_p / pstrain.t_p;
-                pstrain.dCf2 = dA * epsilon_f / t_f(x);
-                pstrain.dC2 = ((2 / pstrain.dCp2) + (1 / pstrain.dCf2))^(-1);
-                pstrain.C2 = int(pstrain.dC2, xi);
-                pstrain.C2 = subs(pstrain.C2, xi, xi_0 + l_0) - subs(pstrain.C2, xi, xi_0);    
+                pstrain = compute_geom(@(x)t_f(x), pstrain);
                 varargout{1} = pstrain;
-            case "PSTRESS"
-                pstress.l = l_0 * (1 + epsilon_1(x));
+            case "PSTRESS" % all epsilon_i ~= 0
                 pstress.w = w_0 * (1 + epsilon_2(x));
                 pstress.t_p = tp_0 * (1 + epsilon_3(x));
-                pstress.A = pstress.l * pstress.w;
-                dA = pstress.w * (1 + epsilon_1(x)); % * dxi
-                dCp = dA * epsilon_p / pstress.t_p;
-                dCf = dA * epsilon_f / t_f;
-                pstress.dC = ((2 / dCp) + (1 / dCf)) ^ (-1);
-                pstress.C = int(pstress.dC, xi);
-                pstress.C = subs(pstress.C, xi, xi_0 + l_0) - subs(pstress.C, xi, xi_0);
+                pstress = compute_geom(@(x)t_f(x), pstress);
                 varargout{1} = pstress;
             case "NO_STRAIN"
-                nostrain.l = l_0;
+                nostrain = struct();
                 nostrain.t_p = tp_0;
                 nostrain.w = w_0;
-                nostrain.A = nostrain.l * nostrain.w;
-                dA = nostrain.w * (1 + epsilon_1(x)); % * dxi
-                dCp = dA * epsilon_p / nostrain.t_p;
-                dCf = dA * epsilon_f / t_f;
-                nostrain.dC = ((2 / dCp) + (1 / dCf)) ^ (-1);
-                nostrain.C = int(nostrain.dC, xi);
-                nostrain.C = subs(nostrain.C, xi, xi_0 + l_0) - subs(nostrain.C, xi, xi_0);
+                nostrain = compute_geom(@(x)t_f(x), nostrain, "NO_STRAIN");
                 varargout{1} = nostrain;
             otherwise
                 error("Provide correct deformation type")
         end    
+        
     elseif isempty(varargin)
-        pstrain.l = l_0 * (1 + epsilon_1(x));
         pstrain.w = w_0;
         pstrain.t_p = tp_0 * (1 + epsilon_3(x));
-        pstrain.A = pstrain.l * pstrain.w;
-        dA = pstrain.w * (1 + epsilon_1(x)); % * dxi
-
-        pstrain.Cp1 = A * epsilon_p / tp_0;
-        pstrain.Cf1 = A * epsilon_f / t_f(t_f0);
-        pstrain.C1 = ((2 / Cp1) + (1 / Cf1)) ^ (-1);
-        
-        pstrain.dCp2 = dA * epsilon_p / pstrain.t_p;
-        pstrain.dCf2 = A * epsilon_f / t_f;
-        pstrain.dC2 = ((2 / dCp2) + (1 / dCf2))^(-1);
-        pstrain.C2 = int(pstrain.dC2, xi);
-        pstrain.C2 = subs(pstrain.C2, xi, xi_0 + l_0) - subs(pstrain.C2, xi, xi_0);    
+        pstrain = compute_geom(@(x)t_f(x), pstrain);
         varargout{1} = pstrain;
 
-        pstress.l = l_0 * (1 + epsilon_1(x));
-        pstress.t_p = tp_0;
         pstress.w = w_0 * (1 + epsilon_2(x));
-        pstress.A = pstress.l * pstress.w;
-        dA = pstress.w * (1 + epsilon_1(x)); % * dxi
-        dCp = dA * epsilon_p / pstress.t_p;
-        dCf = dA * epsilon_f / t_f;
-        pstress.dC = ((2 / dCp) + (1 / dCf)) ^ (-1);
-        pstress.C = int(pstress.dC, xi);
-        pstress.C = subs(pstress.C, xi, xi_0 + l_0) - subs(pstress.C, xi, xi_0);
+        pstress.t_p = tp_0 * (1 + epsilon_3(x));
+        pstress = compute_geom(@(x)t_f(x), pstress);
         varargout{2} = pstress;
 
-        nostrain.l = l_0;
+        nostrain = struct();
         nostrain.t_p = tp_0;
         nostrain.w = w_0;
-        nostrain.A = nostrain.l * nostrain.w;
-        dA = nostrain.w * (1 + epsilon_1(x)); % * dxi
-        dCp = dA * epsilon_p / nostrain.t_p;
-        dCf = dA * epsilon_f / t_f;
-        nostrain.dC = ((2 / dCp) + (1 / dCf)) ^ (-1);
-        nostrain.C = int(nostrain.dC, xi);
-        nostrain.C = subs(nostrain.C, xi, xi_0 + l_0) - subs(nostrain.C, xi, xi_0);
+        nostrain = compute_geom(@(x)t_f(x), nostrain, "NO_STRAIN");
         varargout{3} = nostrain;
     else
         error("Invalid number of input arguments")
     end
+end
 
-
-
-
+function structin = compute_geom(t_f, structin, varargin)
+    syms epsilon_1(x) tf_0 l_0 l_c epsilon_p epsilon_f xi xi_0
+    if ~isempty(varargin) && varargin{1} == "NO_STRAIN"
+        epsilon_1(x) = 0;
+    end
+    structin.l_a = (l_0 - l_c) + (x - tf_0)^2 / (8 * (l_0 - l_c));
+    structin.A1 = l_c * structin.w;
+    structin.A2 = structin.l_a * structin.w;
+    structin.dA = structin.w * (1 + epsilon_1(x)); % * dxi
+    structin.Cp1 = structin.A1 * epsilon_p / structin.t_p;
+    structin.Cf1 = structin.A1 * epsilon_f / t_f(tf_0);
+    structin.C1 = ((2 / structin.Cp1) + (1 / structin.Cf1)) ^ (-1);
+    structin.dCp2 = structin.dA * epsilon_p / structin.t_p;
+    structin.dCf2 = structin.dA * epsilon_f / t_f(x);
+    structin.dC2 = ((2 / structin.dCp2) + (1 / structin.dCf2))^(-1);
+    structin.C2 = int(structin.dC2, xi);
+    structin.C2 = subs(structin.C2, xi, xi_0 + l_0) - subs(structin.C2, xi, xi_0);
 end
