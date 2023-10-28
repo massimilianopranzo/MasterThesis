@@ -1,43 +1,45 @@
-function [varargout] = compute_geometry1(t_f, varargin)
-    syms epsilon_2(x) epsilon_3(x) w_0 tp_0
-    
+function [varargout] = compute_geometry1(t_f, structin, varargin)
+    syms epsilon_2(x) epsilon_3(x) w_0 tp_0 t_p(x) w(x)
+
     if length(varargin) == 1
+        
         switch varargin{1}
             case "PSTRAIN" % epsilon_2 = 0
-                pstrain.w = w_0;
-                pstrain.t_p = tp_0 * (1 + epsilon_3(x));
-                pstrain = compute_geom(@(x)t_f(x), pstrain);
-                varargout{1} = pstrain;
+                tmp_w = w_0;
+                tmp_tp = tp_0 * (1 + epsilon_3);
             case "PSTRESS" % all epsilon_i ~= 0
-                pstress.w = w_0 * (1 + epsilon_2(x));
-                pstress.t_p = tp_0 * (1 + epsilon_3(x));
-                pstress = compute_geom(@(x)t_f(x), pstress);
-                varargout{1} = pstress;
+                tmp_w = w_0 * (1 + epsilon_2(x));
+                tmp_tp = tp_0 * (1 + epsilon_3(x));
             case "NO_STRAIN"
-                nostrain = struct();
-                nostrain.t_p = tp_0;
-                nostrain.w = w_0;
-                nostrain = compute_geom(@(x)t_f(x), nostrain, "NO_STRAIN");
-                varargout{1} = nostrain;
+                tmp_w = w_0;
+                tmp_tp = tp_0;
+            case "GENERAL"
+                structin.w = w(x);
+                structin.t_p = t_p(x);
+                structin = compute_geom(@(x)t_f(x), structin);
+                varargout{1} = structin;
+                return;
             otherwise
-                error("Provide correct deformation type")
+                error("Provide deformation: PSTRAIN | PSTRESS | NO_STRAIN | GENERAL")           
         end    
-        
+        structout = subs_fields(structin, tmp_w, tmp_tp);
+        varargout{1} = structout;
+
     elseif isempty(varargin)
-        pstrain.w = w_0;
-        pstrain.t_p = tp_0 * (1 + epsilon_3(x));
-        pstrain = compute_geom(@(x)t_f(x), pstrain);
-        varargout{1} = pstrain;
+        tmp_w = w_0;
+        tmp_tp = tp_0 * (1 + epsilon_3);
+        structout = subs_fields(structin, tmp_w, tmp_tp);
+        varargout{1} = structout;
 
-        pstress.w = w_0 * (1 + epsilon_2(x));
-        pstress.t_p = tp_0 * (1 + epsilon_3(x));
-        pstress = compute_geom(@(x)t_f(x), pstress);
-        varargout{2} = pstress;
+        tmp_w = w_0 * (1 + epsilon_3);
+        tmp_tp = tp_0 * (1 + epsilon_3);
+        structout = subs_fields(structin, tmp_w, tmp_tp);
+        varargout{2} = structout;
 
-        nostrain.t_p = tp_0;
-        nostrain.w = w_0;
-        nostrain = compute_geom(@(x)t_f(x), nostrain, "NO_STRAIN");
-        varargout{3} = nostrain;
+        tmp_w = w_0;
+        tmp_tp = tp_0;
+        structout = subs_fields(structin, tmp_w, tmp_tp, "NOSTRAIN");
+        varargout{3} = structout;
     else
         error("Invalid number of input arguments")
     end
@@ -56,4 +58,18 @@ function structin = compute_geom(t_f, structin, varargin)
     structin.dC = ((2 / structin.dCp) + (1 / structin.dCf)) ^ (-1);
     structin.C = int(structin.dC, xi);
     structin.C = subs(structin.C, xi, xi_0 + l_0) - subs(structin.C, xi, xi_0);
+end
+
+function structout = subs_fields(structin, tmp_w, tmp_tp, nostrain)
+    syms epsilon_1(x) w(x) t_p(x)
+    if exist("nostrain", "var") && strcmpi(nostrain, "NOSTRAIN")
+        tmp_eps1 = 0;
+    else
+        tmp_eps1 = epsilon_1(x);
+    end
+    names = fieldnames(structin);
+    for i = 1:length(names)
+        name = names{i};
+        structout.(name) = subs(structin.(name), {w, t_p, epsilon_1},{tmp_w, tmp_tp, tmp_eps1});
+    end
 end
