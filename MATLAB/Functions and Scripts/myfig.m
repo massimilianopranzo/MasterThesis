@@ -1,5 +1,5 @@
-function [] = myfig(num, name)
+function fig = myfig(num, name)
     fig = figure(num); clf;
-    set(fig, 'Name', string(name))%, 'Visible', 'off')
+    set(fig, 'Name', string(name), 'Visible', 'on')
 end
 

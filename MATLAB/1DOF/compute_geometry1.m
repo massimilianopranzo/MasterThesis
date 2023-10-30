@@ -1,19 +1,41 @@
 function [varargout] = compute_geometry1(t_f, structin, varargin)
+    % If varargin is empty, compute geometry for all three cases and you have to pass the general case structure of 1DOF
+    % If varargin is "PSTRAIN" | "PSTRESS" | "NO_STRAIN", structing is the general case structure of 1DOF and you get the structure for the specific case
+    % If varargin is "GENERAL", you have to pass an empty struct and you get the general case structure of 1DOF
     syms epsilon_2(x) epsilon_3(x) w_0 tp_0 t_p(x) w(x)
+    
+    if isstruct(t_f) && ismember(structin, ["PSTRAIN", "PSTRESS", "NO_STRAIN"])
+        varargin = {structin};
+        structin = t_f;
+        t_f = NaN;
+    end
 
+    no_strain = 0;
     if length(varargin) == 1
-        
         switch varargin{1}
             case "PSTRAIN" % epsilon_2 = 0
+                if isempty(fieldnames(structin))
+                    error("Provide struct for general case")
+                end
                 tmp_w = w_0;
                 tmp_tp = tp_0 * (1 + epsilon_3);
             case "PSTRESS" % all epsilon_i ~= 0
+                if isempty(fieldnames(structin))
+                    error("Provide struct for general case")
+                end
                 tmp_w = w_0 * (1 + epsilon_2(x));
                 tmp_tp = tp_0 * (1 + epsilon_3(x));
             case "NO_STRAIN"
+                if isempty(fieldnames(structin))
+                    error("Provide struct for general case")
+                end
                 tmp_w = w_0;
                 tmp_tp = tp_0;
+                no_strain = varargin{1}; 
             case "GENERAL"
+                if ~isempty(fieldnames(structin))
+                    error("Provide empty struct for general case")
+                end
                 structin.w = w(x);
                 structin.t_p = t_p(x);
                 structin = compute_geom(@(x)t_f(x), structin);
@@ -22,7 +44,7 @@ function [varargout] = compute_geometry1(t_f, structin, varargin)
             otherwise
                 error("Provide deformation: PSTRAIN | PSTRESS | NO_STRAIN | GENERAL")           
         end    
-        structout = subs_fields(structin, tmp_w, tmp_tp);
+        structout = subs_fields(structin, tmp_w, tmp_tp, no_strain);
         varargout{1} = structout;
 
     elseif isempty(varargin)
@@ -47,9 +69,6 @@ end
 
 function structin = compute_geom(t_f, structin, varargin)
     syms epsilon_1(x) l_0 epsilon_p epsilon_f xi xi_0
-    if ~isempty(varargin) && varargin{1} == "NO_STRAIN"
-        epsilon_1(x) = 0;
-    end
     structin.l = l_0 * (1 + epsilon_1(x));
     structin.A = structin.l * structin.w;
     structin.dA = structin.w * (1 + epsilon_1(x)); % * dxi
@@ -61,15 +80,16 @@ function structin = compute_geom(t_f, structin, varargin)
 end
 
 function structout = subs_fields(structin, tmp_w, tmp_tp, nostrain)
-    syms epsilon_1(x) w(x) t_p(x)
-    if exist("nostrain", "var") && strcmpi(nostrain, "NOSTRAIN")
-        tmp_eps1 = 0;
+    syms epsilon_1(x) epsilon_2(x) epsilon_3(x) sigma_1(x) sigma_2(x) w(x) t_p(x)
+    if strcmpi(nostrain, "NO_STRAIN")
+        eps1 = 0; eps2 = 0; eps3 = 0; s1 = 0; s2 = 0;
     else
-        tmp_eps1 = epsilon_1(x);
+        eps1 = epsilon_1(x); eps2 = epsilon_2(x); eps3 = epsilon_3(x);
+        s1 = sigma_1(x); s2 = sigma_2(x);
     end
     names = fieldnames(structin);
     for i = 1:length(names)
         name = names{i};
-        structout.(name) = subs(structin.(name), {w, t_p, epsilon_1},{tmp_w, tmp_tp, tmp_eps1});
+        structout.(name) = subs(structin.(name), {w, t_p, epsilon_1, epsilon_2, epsilon_3, sigma_1, sigma_2},{tmp_w, tmp_tp, eps1, eps2, eps3, s1, s2});
     end
 end

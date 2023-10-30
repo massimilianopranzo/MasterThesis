@@ -37,6 +37,17 @@ function [newexpr] = sstrain1(expr, varargin)
             check_strain(expr, "sigma_2", "PSTRESS");
             newexpr = subs(expr, {sigma_1, epsilon_1, epsilon_2, epsilon_3}, {s1, eps1, eps2, eps3});  
         end
+    elseif upper(varargin{1}) == "NO_STRAIN"
+        s1 = 0; s2 = 0;
+        eps1 = 0; eps2 = 0; eps3 = 0;
+        if isstruct(expr)
+            for i = 1:length(names)
+                name = names{i};
+                newexpr.(name) = subs(expr.(name), {sigma_1, sigma_2, epsilon_1, epsilon_2, epsilon_3}, {s1, s2, eps1, eps2, eps3});
+            end
+        else
+            newexpr = subs(expr, {sigma_1, sigma_2, epsilon_1, epsilon_2, epsilon_3}, {s1, s2, eps1, eps2, eps3});  
+        end
     else
         error("Incorrect deformation condition.")
     end    
