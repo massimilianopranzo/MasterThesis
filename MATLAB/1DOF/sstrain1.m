@@ -7,7 +7,6 @@ function [newexpr] = sstrain1(expr, varargin)
         names = fieldnames(expr);
     end
 
-
     if isempty(varargin) || upper(varargin{1}) == "PSTRAIN"
         s1 = - Y_p * eps1 / (nu^2 - 1);
         s2 = - Y_p * nu * eps1 / (nu^2 - 1);

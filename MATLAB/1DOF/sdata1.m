@@ -114,21 +114,25 @@ function [newexpr] = sdata1(expr, varargin)
 
         if ~isempty(exceptvars) && ~isempty(subsvars) && ~isempty(setdiff(string(subsvars), string(exceptvars)))
             subsvars = string(setdiff(string(subsvars), string(exceptvars), 'stable'));
-            str = "";
-            for i = 1:length(subsvars)
-                if i == length(subsvars)
-                    str = str + subsvars(i);
+            subsvars(subsvars == "x") = [];
+            varstr = "";
+            if ~isempty(subsvars)
+                for i = 1:length(subsvars)
+                    if i == length(subsvars)
+                        varstr = varstr + subsvars(i);
+                    else
+                        varstr = varstr + subsvars(i) + ", ";
+                    end
+                end
+                if length(subsvars) == 1
+                    error("Variable " + varstr + " has been already substituted by 'except' argument.");
                 else
-                    str = str + subsvars(i) + ", ";
+                    error("Variables " + varstr + " have been already substituted by 'except' argument.");
                 end
             end
-            error("The variables " + str + " have been already substituted by 'except'.");
+        end
         
             
-        end
-
-    else
-        error("Unexpected number of arguments.");
     end
         
 end

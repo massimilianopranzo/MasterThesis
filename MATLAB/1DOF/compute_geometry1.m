@@ -4,7 +4,7 @@ function [varargout] = compute_geometry1(t_f, structin, varargin)
     % If varargin is "GENERAL", you have to pass an empty struct and you get the general case structure of 1DOF
     syms epsilon_2(x) epsilon_3(x) w_0 tp_0 t_p(x) w(x)
     
-    if isstruct(t_f) && ismember(structin, ["PSTRAIN", "PSTRESS", "NO_STRAIN"])
+    if isstruct(t_f) && ismember(structin, ["PSTRAIN", "PSTRESS", "NO_STRAIN"]) && isempty(varargin)
         varargin = {structin};
         structin = t_f;
         t_f = NaN;
@@ -19,7 +19,7 @@ function [varargout] = compute_geometry1(t_f, structin, varargin)
                 end
                 tmp_w = w_0;
                 tmp_tp = tp_0 * (1 + epsilon_3);
-            case "PSTRESS" % all epsilon_i ~= 0
+            case "PSTRESS" % sigma_2 = 0
                 if isempty(fieldnames(structin))
                     error("Provide struct for general case")
                 end
@@ -77,6 +77,10 @@ function structin = compute_geom(t_f, structin, varargin)
     structin.dC = ((2 / structin.dCp) + (1 / structin.dCf)) ^ (-1);
     structin.C = int(structin.dC, xi);
     structin.C = subs(structin.C, xi, xi_0 + l_0) - subs(structin.C, xi, xi_0);
+    w = structin.w;
+    t_p = structin.t_p;
+    l = structin.l;
+    structin.Vol = w * 2 * t_p * l + w * (x - tf_0) / 2 * sqrt(l^2 - (x / 2)^2);
 end
 
 function structout = subs_fields(structin, tmp_w, tmp_tp, nostrain)
