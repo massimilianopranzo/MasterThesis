@@ -18,5 +18,8 @@ set(0,'DefaultFigureWindowStyle','docked');
 set(0,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
-set(groot, 'DefaultTextInterpreter', 'latex')
+set(groot, 'DefaultTextInterpreter', 'latex');
+
+
+addpath("Functions and Scripts\");
 
