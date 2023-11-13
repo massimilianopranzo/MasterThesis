@@ -165,61 +165,64 @@ title("x - F(x) | Different def. condition")
 
 
 %% F(x): Plane strain with different l_0
-l0_range = sdata1(l_0) * (1-0.9:0.1:1+0.9);
-x_range = res_1dof_pstrain.x_startend;
+x_rangetmp = double(linspace(sdata1(tf_0), 3e-3, 300));
+l0_range = double(sdata1(l_0) * (1-0.7:0.35:1+0.7));
 FVmin_l0 = cell(length(l0_range), 1);
 FVmax_l0 = cell(length(l0_range), 1);
 
-FVmin_l0tmp = subs(sdata1(pstrain.FVmin, 'except', l_0), x, x_range);
-FVmax_l0tmp = subs(sdata1(pstrain.FVmax, 'except', l_0), x, x_range);
+FVmin_l0tmp = subs(sdata1(pstrain.FVmin, 'except', l_0), x, x_rangetmp);
+FVmax_l0tmp = subs(sdata1(pstrain.FVmax, 'except', l_0), x, x_rangetmp);
+x_range = cell(length(l0_range), 1);
+
+myfig(10, "x - F(x) varying $l_0$"); hold on
 for i = 1:length(l0_range)
+    
     FVmin_l0{i} = double(subs(FVmin_l0tmp, l_0, l0_range(i)));
     FVmax_l0{i} = double(subs(FVmax_l0tmp, l_0, l0_range(i)));
-end
-FVmin_l0;
+    % [val, idx] = findpeaks(FVmax_l0{i});
+    % FVmin_l0{i} = FVmin_l0{i}(FVmax_l0{i} <= val);
+    % FVmax_l0{i} = FVmax_l0{i}(FVmax_l0{i} <= val);
+    % x_range{i} = x_rangetmp(FVmax_l0{i} <= val);
+    FVmin_l0{i} = FVmin_l0{i}(idx:end);
+    FVmax_l0{i} = FVmax_l0{i}(idx:end);
+    x_range{i} = x_rangetmp(idx:end);
 
-% myfig(10, "x - F(x) varying $l_0$"); hold on
-% for i = 1:1
-%     if i == 2
-%         nameVmin = strjoin(["$V_{min}, l_0 =$", string(vpa(l0_range(i),4)), "m (Nom.)"]);
-%         nameVmax = strjoin(["$V_{max}, l_0 =$", string(vpa(l0_range(i),4)), "m (Nom.)"]);
-%     else
-%         nameVmin = strjoin(["$V_{min}, l_0 =$", string(vpa(l0_range(i),4)), "m"]);
-%         nameVmax = strjoin(["$V_{max}, l_0 =$", string(vpa(l0_range(i),4)), "m"]);
-%     end
-%     plot(x_range, FVmin_l0{i}, plcol(i), 'LineWidth', 2, 'DisplayName', nameVmin)
-%     plot(x_range, FVmax_l0{i}, plcol(i), 'LineWidth', 2, 'DisplayName', nameVmax)
-% end
-% myxline(double(x_range(1)), "x_{MIN}");
-% myxline(double(x_range(end)), "x_{MAX}");
-% legend('FontWeight','bold', 'Location','north')
-% title("x - F(x) varying $l_0$")
-% xlim("padded")
+    subplot(2,3,i); hold on;
+    plot(x_range{i}, FVmin_l0{i}, plcol(i), 'LineWidth', 2, 'DisplayName', nameVmin)
+    plot(x_range{i}, FVmax_l0{i}, [plcol(i) '--'], 'LineWidth', 2, 'DisplayName', nameVmax)
+    myxline(double(x_range{i}(1)), "x_{MIN}");
+    myxline(double(x_range{i}(end)), "x_{MAX}");
+    title("$l_0$ = " + num2str(l0_range(i)) + ' [m]')
+    xlim("padded")
+    ylim("padded")
+end
 
 %% Energy and energy density
 Uel_l0 = zeros(length(l0_range),1);
 uel_l0 = zeros(length(l0_range),1);
-Vol_l0 = sdata1(pstrain.Vol, 'except', l_0, 's', {x, x_range(end)});
+xnorm = zeros(length(l0_range),1);
+
+myfig(11, "x_max / l_0 - Uel(x) - uel(x)"); hold on
 for i = 1:length(l0_range)
-    Uel_l0(i) = trapz(x_range, FVmax_l0{i}) - trapz(x_range, FVmin_l0{i});
+    Vol_l0 = sdata1(pstrain.Vol, 'except', l_0, 's', {x, x_range{i}(end)});
+    Uel_l0(i) = trapz(x_range{i}, FVmax_l0{i}) - trapz(x_range{i}, FVmin_l0{i});
     uel_l0(i) = Uel_l0(i) / subs(Vol_l0, l_0, l0_range(i));
+    
+    xnorm(i) = x_range{i}(end) ./ l0_range(i);
 end
-
-sortxl0 = x_range(end) ./ l0_range
-myfig(11, "x_max / l_0 - Uel(x) varying $l_0$"); hold on
-plot(sortxl0, Uel_l0)
-title("x - $U_{el}(x)$ varying $l_0$")
-xlabel("$x_{MAX} / l_0 \, [-]$")
-ylabel("$U_{el} \, [J]$")
-xlim("padded")
-
-myfig(12, "x_max / l_0 - uel(x) varying $l_0$"); hold on
-plot(sortxl0(2:end), uel_l0(2:end))
-title("x - $u_{el}$(x) varying $l_0$")
-xlabel("$x_{MAX} / l_0 \, [-]$")
-ylabel("$u_{el} \, [J/m^3]$")
-xlim("padded")
-
+subplot(2,1,1); hold on
+    plot(xnorm, Uel_l0)
+    title("x - $U_{el}(x)$ varying $l_0$")
+    xlabel("$x_{MAX} / l_0 \, [-] (\to l_0 \downarrow )$")
+    ylabel("$U_{el} \, [J]$")
+    xlim("padded")
+    
+    subplot(2,1,2); hold on
+    plot(xnorm, uel_l0)
+    title("x - $u_{el}$(x) varying $l_0$")
+    xlabel("$x_{MAX} / l_0 \, [-] (\to l_0 \downarrow )$")
+    ylabel("$u_{el} \, [J/m^3]$")
+    xlim("padded")
 % sdata1(res_1dof_pstrain.C)
 % cmax = res_1dof_pstrain.Cmax
 % cmin = res_1dof_pstrain.Cmin
@@ -227,26 +230,26 @@ xlim("padded")
 % max(res_1dof_pstrain.Vmax_vec)^2 / 2 * (cmax)
 
 %%
-FVmax_vec = subs(sdata1(pstrain.FVmax), x, x_range);
-Uel_l0(i) = trapz(x_range, FVmax_l0{i}) - trapz(x_range, FVmin_l0{i});
-uel_l0(i) = Uel_l0(i) / subs(Vol_l0, l_0, l0_range(i));
-
-Uel_x = sdata1(subs(pstrain.Uel, x, x  / l_0));
-uel_x = Uel_x / sdata1(pstrain.Vol);
-
-myfig(13, "x_max / l_0 - Uel(x)"); hold on
-fplot(Uel_x, [1e-4 1e-3] / 0.025)
-title("x - $U_{el}(x)$")
-xlabel("$x / l_0 \, [-]$")
-ylabel("$U_{el} \, [J]$")
-xlim("padded")
-
-myfig(14, "x / l_0 - u_{el}(x)"); hold on
-fplot(uel_x, [1e-4 1e-3])
-title("x - $u_{el}$(x)")
-xlabel("$x / l_0 \, [-]$")
-ylabel("$u_{el} \, [J/m^3]$")
-xlim("padded")
+% FVmax_vec = subs(sdata1(pstrain.FVmax), x, x_range);
+% Uel_l0(i) = trapz(x_range, FVmax_l0{i}) - trapz(x_range, FVmin_l0{i});
+% uel_l0(i) = Uel_l0(i) / subs(Vol_l0, l_0, l0_range(i));
+% 
+% Uel_x = sdata1(subs(pstrain.Uel, x, x  / l_0));
+% uel_x = Uel_x / sdata1(pstrain.Vol);
+% 
+% myfig(13, "x_max / l_0 - Uel(x)"); hold on
+% fplot(Uel_x, [1e-4 1e-3] / 0.025)
+% title("x - $U_{el}(x)$")
+% xlabel("$x / l_0 \, [-]$")
+% ylabel("$U_{el} \, [J]$")
+% xlim("padded")
+% 
+% myfig(14, "x / l_0 - u_{el}(x)"); hold on
+% fplot(uel_x, [1e-4 1e-3])
+% title("x - $u_{el}$(x)")
+% xlabel("$x / l_0 \, [-]$")
+% ylabel("$u_{el} \, [J/m^3]$")
+% xlim("padded")
 
 
 
