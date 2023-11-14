@@ -68,7 +68,7 @@ function [varargout] = compute_geometry1(t_f, structin, varargin)
 end
 
 function structin = compute_geom(t_f, structin, varargin)
-    syms epsilon_1(x) l_0 epsilon_p epsilon_f xi xi_0
+    syms epsilon_1(x) l_0 epsilon_p epsilon_f xi xi_0 tf_0
     structin.l = l_0 * (1 + epsilon_1(x));
     structin.A = structin.l * structin.w;
     structin.dA = structin.w * (1 + epsilon_1(x)); % * dxi

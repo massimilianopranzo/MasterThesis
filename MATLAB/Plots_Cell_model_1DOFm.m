@@ -165,7 +165,7 @@ title("x - F(x) | Different def. condition")
 
 
 %% F(x): Plane strain with different l_0
-x_rangetmp = double(linspace(sdata1(tf_0), 3e-3, 300));
+x_rangetmp = double(linspace(sdata1(tf_0), 7e-3, 300));
 l0_range = double(sdata1(l_0) * (1-0.7:0.35:1+0.7));
 FVmin_l0 = cell(length(l0_range), 1);
 FVmax_l0 = cell(length(l0_range), 1);
@@ -179,7 +179,7 @@ for i = 1:length(l0_range)
     
     FVmin_l0{i} = double(subs(FVmin_l0tmp, l_0, l0_range(i)));
     FVmax_l0{i} = double(subs(FVmax_l0tmp, l_0, l0_range(i)));
-    % [val, idx] = findpeaks(FVmax_l0{i});
+    [~, idx] = findpeaks(FVmax_l0{i});
     % FVmin_l0{i} = FVmin_l0{i}(FVmax_l0{i} <= val);
     % FVmax_l0{i} = FVmax_l0{i}(FVmax_l0{i} <= val);
     % x_range{i} = x_rangetmp(FVmax_l0{i} <= val);
@@ -188,8 +188,8 @@ for i = 1:length(l0_range)
     x_range{i} = x_rangetmp(idx:end);
 
     subplot(2,3,i); hold on;
-    plot(x_range{i}, FVmin_l0{i}, plcol(i), 'LineWidth', 2, 'DisplayName', nameVmin)
-    plot(x_range{i}, FVmax_l0{i}, [plcol(i) '--'], 'LineWidth', 2, 'DisplayName', nameVmax)
+    plot(x_range{i}, FVmin_l0{i}, plcol(i), 'LineWidth', 2)
+    plot(x_range{i}, FVmax_l0{i}, plcol(i,'--'), 'LineWidth', 2)
     myxline(double(x_range{i}(1)), "x_{MIN}");
     myxline(double(x_range{i}(end)), "x_{MAX}");
     title("$l_0$ = " + num2str(l0_range(i)) + ' [m]')
@@ -207,7 +207,6 @@ for i = 1:length(l0_range)
     Vol_l0 = sdata1(pstrain.Vol, 'except', l_0, 's', {x, x_range{i}(end)});
     Uel_l0(i) = trapz(x_range{i}, FVmax_l0{i}) - trapz(x_range{i}, FVmin_l0{i});
     uel_l0(i) = Uel_l0(i) / subs(Vol_l0, l_0, l0_range(i));
-    
     xnorm(i) = x_range{i}(end) ./ l0_range(i);
 end
 subplot(2,1,1); hold on
