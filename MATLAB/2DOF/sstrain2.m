@@ -1,7 +1,7 @@
 function [newexpr] = sstrain2(expr, varargin)
     syms x l_0 l_c nu tf_0 Y_p sigma_1(x) sigma_2(x) epsilon_1(x) epsilon_2(x) epsilon_3(x)
 
-%     eps1 = (l_c + sqrt((l_0-l_c)^2 + ((x - tf_0)/2)^2)) / l_0 - 1;
+    % eps1 = (l_c + sqrt((l_0-l_c)^2 + ((x - tf_0)/2)^2)) / l_0 - 1;
     eps1 = (x - tf_0)^2 / (8 * l_0 * (l_0 - l_c));      
     
     if isstruct(expr)

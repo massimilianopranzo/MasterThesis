@@ -80,7 +80,7 @@ function structin = compute_geom(t_f, structin, varargin)
     w = structin.w;
     t_p = structin.t_p;
     l = structin.l;
-    structin.Vol = w * 2 * t_p * l + w * (x - tf_0) / 2 * sqrt(l^2 - (x / 2)^2);
+    structin.Vol = w * 2 * t_p * l + w * (x - tf_0) / 2 * sqrt(l^2 - (x / 2)^2) + x * xi_0 * w;
 end
 
 function structout = subs_fields(structin, tmp_w, tmp_tp, nostrain)
