@@ -1,6 +1,9 @@
-function addlabels(x, y, titl)
+function addlabels(x, y, varargin)
     xlabel(x)
     ylabel(y)
-    title(titl)
+    
+    if nargin > 2
+        title(varargin{1})
+    end
 end
 
