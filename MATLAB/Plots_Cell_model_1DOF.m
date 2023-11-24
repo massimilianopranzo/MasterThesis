@@ -40,7 +40,7 @@ x_max = subs(sstrain1(pstrain.x_max), epsilon1_max, eps1_max);
 x_max = vpa(sdata1(rhs(isolate(x_max, x))), 4)
 x_minmax = [double(x_min) double(x_max)];
 
-% C(x): Plane strain - Plane stress - No strain
+%% C(x): Plane strain - Plane stress - No strain
 myfig(1,"x - C(x)"); clf; hold on
 fplot(x, sdata1(pstrain.C), x_minmax, '-', 'LineWidth', 2, 'DisplayName', 'Plane strain')
 fplot(x, sdata1(pstress.C), x_minmax, '*', 'LineWidth', 2, 'DisplayName', 'Plane stress')
@@ -51,7 +51,7 @@ addlabels("x [m]", "C(x) [F]", "x - C(x) | Different def. condition")
 xlim("padded")
 
 
-% C(x): Plane strain with epsilon_1 = 0 or epsilon_3 = 0
+%% C(x): Plane strain with epsilon_1 = 0 or epsilon_3 = 0
 myfig(2,"x - C(x)"); clf; hold on
 fplot(x, sdata1(pstrain.C), x_minmax, 'LineWidth',2, 'DisplayName', 'Plane strain')
 fplot(x, sdata1(subs(pstrain.C, epsilon_1, 0)), x_minmax, '*', 'LineWidth',2, 'DisplayName', '$\varepsilon_1 = 0$')
@@ -62,7 +62,7 @@ addlabels("x [m]", "C(x) [F]", "x - C(x) | Plane strain")
 xlim("padded")
 
 
-% C(x): Plane strain with epsilon_1 = 0 or epsilon_2 = 0
+%% C(x): Plane strain with epsilon_1 = 0 or epsilon_2 = 0
 myfig(3,"x - C(x)"); clf; hold on
 fplot(x, sdata1(pstress.C), x_minmax, 'LineWidth',2, 'DisplayName', 'Plane stress')
 fplot(x, sdata1(subs(pstress.C, epsilon_2, 0)), x_minmax, '*', 'LineWidth',2, 'DisplayName', '$\varepsilon_2 = 0$')
@@ -73,7 +73,7 @@ addlabels("x [m]", "C(x) [F]", "x - C(x) | Plane stress")
 xlim("padded")
 
 
-% C(x): Plane strain with different tp_0
+%% C(x): Plane strain with different tp_0
 tp0_range = sdata1(tp_0) - 0.9*sdata1(tp_0) : 0.9*sdata1(tp_0) : sdata1(tp_0) + 0.9*sdata1(tp_0);
 C_tp0 = subs(sdata1(pstrain.C, 'except', tp_0), tp_0, tp0_range);
 
@@ -93,7 +93,7 @@ addlabels("x [m]", "C(x) [F]", "x - C(x) varying $tp_0$")
 xlim("padded")
 
 
-% C(x): Plane strain with different w_0
+%% C(x): Plane strain with different w_0
 w0_range = sdata1(w_0) - 0.5*sdata1(w_0) : 0.5*sdata1(w_0) : sdata1(w_0) + 0.5*sdata1(w_0);
 C_w0 = subs(sdata1(pstrain.C, 'except', w_0), w_0, w0_range);
 
@@ -112,7 +112,7 @@ addlabels("x [m]", "C(x) [F]", "x - C(x) varying $w_0$")
 xlim("padded")
 
 
-% C(x): Plane strain with different l_0
+%% C(x): Plane strain with different l_0
 l0_range = sdata1(l_0) - 0.5*sdata1(l_0) : 0.5*sdata1(l_0) : sdata1(l_0) + 0.5*sdata1(l_0);
 C_l0 = subs(sdata1(pstrain.C, 'except', l_0), l_0, l0_range);
 
@@ -131,7 +131,7 @@ addlabels("x [m]", "C(x) [F]", "x - C(x) varying $l_0$")
 xlim("padded")
 
 
-% Vmax(x): Plane stress - Plane strain
+%% Vmax(x): Plane stress - Plane strain
 myfig(7,"x - Vmax(x)"); clf; hold on
 fplot(x, sdata1(pstress.Vmax), x_minmax, 'LineWidth',2, 'DisplayName', 'Plane stress')
 fplot(x, sdata1(pstrain.Vmax), x_minmax, 'LineWidth',2, 'DisplayName', 'Plane strain')
@@ -142,7 +142,7 @@ addlabels("x [m]", "Vmax(x) [V]", "x - Vmax(x) | Different def. condition")
 xlim("padded")
 
 
-% Uel(x): Plane stress - Plane strain
+%% Uel(x): Plane stress - Plane strain
 myfig(8,"x - Uel(x)"); clf; hold on;
 fplot(x, sdata1(pstress.Uel), x_minmax, 'LineWidth',2, 'DisplayName', 'Plane stress')
 fplot(x, sdata1(pstrain.Uel), x_minmax, '--', 'LineWidth',2, 'DisplayName', 'Plane strain')
@@ -152,7 +152,7 @@ addlabels("x [m]", "Uel(x) [J]", "x - Uel(x) | Different def. condition")
 xlim("padded")
 
 
-% F(x): Plane stress - Plane strain
+%% F(x): Plane stress - Plane strain
 myfig(9,"x - F(x)"); clf; hold on;
 fplot(x, sdata1(pstress.FVmax), x_minmax, 'LineWidth', 2, 'DisplayName', '$V_{max}$ Plane stress')
 fplot(x, sdata1(pstress.FVmin), x_minmax, '--', 'LineWidth', 2, 'DisplayName', '$V_{max}$ Plane stress')
@@ -163,19 +163,21 @@ legend('FontWeight','bold', 'Location','northwest')
 addlabels("x [m]", "C(x) [F]", "x - F(x) | Different def. condition")
 
 
-% F(x): Plane strain varying l_0, plane strain
+%% F(x): Plane strain varying l_0, plane strain
+ratio_xi0_l0 = sdata1(xi_0 / l_0);
 l0_range = double(sdata1(l_0) * (0.5:0.5:1.5));
+xi0_range = ratio_xi0_l0 * l0_range;
 x_range = double(sdata1(tf_0):1e-5:10e-3)';
 FVmin_l0 = cell(size(l0_range));
 FVmax_l0 = cell(size(l0_range));
 
-FVmin_tmp = sdata1(pstrain.FVmin, 'except', l_0, 's', {x, x_range});
-FVmax_tmp = sdata1(pstrain.FVmax, 'except', l_0, 's', {x, x_range});
+FVmin_tmp = sdata1(pstrain.FVmin, 'except', {l_0, xi_0}, 's', {x, x_range});
+FVmax_tmp = sdata1(pstrain.FVmax, 'except', {l_0, xi_0}, 's', {x, x_range});
 myfig(10, "x - F(x) varying l_0"); hold on
 for i = 1:length(l0_range)
     subplot(3,1,i); hold on
-    FVmin_l0{i} = double(subs(FVmin_tmp, l_0, l0_range(i)));
-    FVmax_l0{i} = double(subs(FVmax_tmp, l_0, l0_range(i)));
+    FVmin_l0{i} = double(subs(FVmin_tmp, {l_0, xi_0}, {l0_range(i), xi0_range(i)}));
+    FVmax_l0{i} = double(subs(FVmax_tmp, {l_0, xi_0}, {l0_range(i), xi0_range(i)}));
     [~, idx] = findpeaks(FVmax_l0{i});
     x_range_eff = x_range(idx:end);
     FVmin_l0{i} = FVmin_l0{i}(idx:end);
@@ -189,7 +191,7 @@ for i = 1:length(l0_range)
 end
 
 
-% Energy and energy density
+%% Energy and energy density
 Uel_xmax = cell(size(l0_range));
 uel_xmax = cell(size(l0_range));
 Vol_tmp = sdata1(pstrain.Vol);
@@ -200,7 +202,7 @@ for i = 1:length(l0_range)
     if double(sdata1(l_0)) ~= l0_range(i)
         for j = 1:st:length(x_range_eff)
             Uel_xmax{i}(j - k * st + k) = trapz(x_range_eff(1:st:j), FVmax_l0{i}(1:st:j),1) - trapz(x_range_eff(1:st:j), FVmin_l0{i}(1:st:j),1);
-            uel_xmax{i}(j - k * st + k) = Uel_xmax{i}(j - k * st + k) / subs(Vol_tmp, x, x_range_eff(j));
+            uel_xmax{i}(j - k * st + k) = Uel_xmax{i}(j - k * st + k) / subs(Vol_tmp, {x, l_0, xi_0}, {x_range_eff(j), l0_range(i), xi0_range(i)});
             k = k + 1;   
         end
         xr = x_range_eff(1:st:end);
@@ -210,11 +212,11 @@ for i = 1:length(l0_range)
         xr = res_1dof_pstrain.x_range_eff(res_1dof_pstrain.x_range_eff <= x_range_eff(end));
     end
     subplot(2,1,1); hold on
-    plot(xr / sdata1(l_0), Uel_xmax{i}, 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
+    plot(xr / l0_range(i), Uel_xmax{i}, 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
     addlabels("$x_{MAX} / l_0$ [-]", "$U_{el}$ [J]", "$x_{MAX} / l_0$ vs $U_{el}$")
     legend('Location', 'southeast')
 
     subplot(2,1,2); hold on
-    plot(xr / sdata1(l_0), uel_xmax{i}, 'LineWidth', 1.5)
+    plot(xr / l0_range(i), uel_xmax{i}, 'LineWidth', 1.5)
     addlabels("$x_{MAX} / l_0$ [-]", "$u_{el} [J/m^3]$", "$x_{MAX} / l_0$ vs $u_{el}$")
 end

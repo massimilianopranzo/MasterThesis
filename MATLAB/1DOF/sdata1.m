@@ -1,26 +1,20 @@
 function [newexpr] = sdata1(expr, varargin)
-    syms nu Y_p epsilon_p epsilon_f EBD_p EBD_f l_0 w_0 tp_0 tf_0 xi_0 x
+    syms x
     
-    allvars = {nu, Y_p, epsilon_p, epsilon_f, EBD_p, EBD_f, l_0, w_0, tp_0, tf_0, xi_0};
-    values = def_data();
+    [allvars, values] = def_data();
 
     is_defcond = 0;
     is_strains = 0;
     if contains(string(expr), ["epsilon_1", "epsilon_2", "epsilon_3", "sigma_1", "sigma_2", "sigma_3"])
         is_strains = 1;
     end 
-
-    if sum(myismember(varargin, "PSTRAIN"))  
+    
+    if find(cellfun(@(x)(isstring(x) || ischar(x)) && strcmpi("PSTRAIN", x), varargin), 1)
             is_defcond = 1;
             expr = sstrain1(expr, "PSTRAIN");
-        elseif sum(myismember(varargin, "PSTRESS"))
+    elseif find(cellfun(@(x)(isstring(x) || ischar(x)) && strcmpi("PSTRESS", x), varargin), 1)
             is_defcond = 1;
             expr = sstrain1(expr, "PSTRESS");
-    end
-
-    if is_defcond && sum(myismember(varargin, "none"))
-        newexpr = expr;
-        return;
     end
 
     if is_defcond && length(varargin) > 1
@@ -34,7 +28,7 @@ function [newexpr] = sdata1(expr, varargin)
 
     elseif length(varargin) == 1
         if ~isstring(varargin{1})
-            if length(varargin{1}) > 1 && sum(myisnumeric(varargin{1}))
+            if length(varargin{1}) > 1 && isnumeric(varargin{1})
                 subsvars = varargin{1}(1:2:end);
                 subsvalues = cell(varargin{1}(2:2:end));
                 
@@ -57,8 +51,11 @@ function [newexpr] = sdata1(expr, varargin)
         end
 
     elseif length(varargin) >= 2 && mod(length(varargin), 2) == 0 && (isstring(varargin{1}) || ischar(varargin{1}))
-        if sum(myismember(varargin, "except")) % Subs all variables with default values except specific variables
-            idx_except = myfindstr(varargin, "except");
+        idx_except = find(cellfun(@(x)(isstring(x) || ischar(x)) && strcmpi("except", x), varargin));
+        idx_only = find(cellfun(@(x)(isstring(x) || ischar(x)) && strcmpi("only", x), varargin));
+        idx_subs = find(cellfun(@(x)(isstring(x) || ischar(x)) && strcmpi("s", x), varargin));
+        if ~isempty(idx_except) % Subs all variables with default values except specific variables
+            
             exceptvars = varargin{idx_except+1};
             [selected_vars, idx] = setdiff(string(allvars), string(exceptvars), 'stable');
             selected_vars = sym2cell(str2sym(selected_vars));
@@ -69,11 +66,10 @@ function [newexpr] = sdata1(expr, varargin)
             exceptvars = [];
             newexpr = expr;
         end
-        if sum(myismember(varargin, "only")) % Subs only specific variables with default values
+        if ~isempty(idx_only) % Subs only specific variables with default values
             if ~isempty(exceptvars)
                 error("Cannot use 'except' and 'only' at the same time.");
             end
-            idx_only = myfindstr(varargin, "only");
             onlyvars = varargin{idx_only+1};
             [selected_vars, idx] = intersect(string(allvars), string(onlyvars), 'stable');
             selected_vars = sym2cell(str2sym(selected_vars));
@@ -83,8 +79,7 @@ function [newexpr] = sdata1(expr, varargin)
             idx_only = 0;
             onlyvars = [];
         end
-        if sum(myismember(varargin, "s")) % Subs specific variables with specific values
-            idx_subs = myfindstr(varargin, "s");
+        if ~isempty(idx_subs) % Subs specific variables with specific values
             subsvars = {varargin{idx_subs+1}{1:2:end}};
             is_x = ~isempty(find(subsvars == x));
             
@@ -101,66 +96,21 @@ function [newexpr] = sdata1(expr, varargin)
 
         if ~isempty(exceptvars) && ~isempty(subsvars) && ~isempty(setdiff(string(subsvars), string(exceptvars)))
             subsvars = string(setdiff(string(subsvars), string(exceptvars), 'stable'));
-            subsvars(subsvars == "x") = [];
-            varstr = "";
-            if ~isempty(subsvars)
-                for i = 1:length(subsvars)
-                    if i == length(subsvars)
-                        varstr = varstr + subsvars(i);
-                    else
-                        varstr = varstr + subsvars(i) + ", ";
-                    end
-                end
-                if length(subsvars) == 1
-                    error("Variable " + varstr + " has been already substituted by 'except' argument.");
+            str = "";
+            for i = 1:length(subsvars)
+                if i == length(subsvars)
+                    str = str + subsvars(i);
                 else
-                    error("Variables " + varstr + " have been already substituted by 'except' argument.");
+                    str = str + subsvars(i) + ", ";
                 end
             end
-        end
+            error("The variables " + str + " have been already substituted by 'except'.");
         
             
+        end
+
+    else
+        error("Unexpected number of arguments.");
     end
         
-end
-
-function indexes = myismember(arg1, arg2)
-    if ~iscell(arg1)
-        arg1 = cell(arg1);
-    end
-    indexes = zeros(1, length(arg1));
-    for i = 1:length(arg1)
-        if isstring(arg1{i}) || ischar(arg1{i})
-            memb = ismember(arg1{i}, arg2);
-            indexes(i) = memb;
-        end
-    end
-end
-
-function indexes = myfindstr(arg1, arg2)
-    if length(arg1) == 1
-        if isstring(arg1) || ischar(arg1)
-            if strcmp(arg1, arg2)
-                indexes = 1;
-            end
-        end
-    else
-        indexes = [];
-        for i = 1:length(arg1)
-            if isstring(arg1{i}) || ischar(arg1{i})
-                if strcmp(arg1{i}, arg2)
-                    indexes = [indexes, i];
-                end
-            end
-        end
-    end
-end
-
-function indexes = myisnumeric(arg)
-    indexes = zeros(1, length(arg));
-    for i = 1:length(arg)
-        if isnumeric(arg{i})
-           indexes(i) = 1; 
-        end
-    end
 end
