@@ -83,9 +83,9 @@ function structout = subs_fields(structin, tmp_w, tmp_tp, nostrain)
 end
 
 function structin = compute_geom(t_f, structin, varargin)
-    syms epsilon_1(x) tf_0 l_0 l_c epsilon_p epsilon_f xi xi_0 tp_0 l_0 w_0
+    syms epsilon_1(x) tf_0 l_0 l_c epsilon_p epsilon_f xi xi_0 tp_0 l_0 w_0 
 
-    structin.l_a = (l_0 - l_c) + (x - tf_0)^2 / (8 * (l_0 - l_c));
+    structin.l_a = (l_0 - l_c) + (x - tf_0)^2 / (8 * (l_0 - l_c)); % from linearisation of sqrt((l_0 - lc)^2 + (x - tf_0)^2 / 2)
     structin.A1 = l_c * structin.w;
     structin.A2 = structin.l_a * structin.w;
     structin.dA = structin.w * (1 + epsilon_1(x)); % * dxi
@@ -100,6 +100,8 @@ function structin = compute_geom(t_f, structin, varargin)
     w = structin.w;
     l_a = structin.l_a;
     t_p = structin.t_p;
-    structin.Vol = 2 * t_p * w * l_c + tf_0 * w * l_c + 2 * t_p * l_a * w + w * (x + tf_0) * (l_0 - l_c) / 2;
-    structin.Vol_0 = l_0 * w_0 * tp_0;
+    structin.Vol_p = 2 * w * t_p * (l_c + l_a);
+    structin.Vol_f = w * (tf_0 * l_c + ((x + tf_0) * (l_0 - l_c) / 2) + xi_0 * x); % w * (tf0 rectangle + x trapezoid + xi_0 rectangle)
+    structin.Vol = structin.Vol_p + structin.Vol_f;
+    structin.Vol_0 = 2 * w_0 * tp_0 * l_0;
 end

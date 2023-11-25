@@ -23,4 +23,6 @@ set(groot, 'DefaultTextInterpreter', 'latex');
 
 
 addpath("Functions and Scripts\");
+addpath("1DOF\");
+addpath("2DOF\");
 
