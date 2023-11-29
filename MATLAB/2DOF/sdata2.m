@@ -93,7 +93,12 @@ function [newexpr] = sdata2(expr, varargin)
             idx_subs = 0;
             subsvars = [];
         end
-
+        
+        if ~isempty(find(subsvars == x))
+                idx = find(subsvars == x);
+                subsvars(idx) = [];
+        end
+        
         if ~isempty(exceptvars) && ~isempty(subsvars) && ~isempty(setdiff(string(subsvars), string(exceptvars)))
             subsvars = string(setdiff(string(subsvars), string(exceptvars), 'stable'));
             str = "";

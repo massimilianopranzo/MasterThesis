@@ -177,7 +177,7 @@ myfig(10, "x - F(x) varying l_0"); hold on
 for i = 1:length(l0_range)
     subplot(3,1,i); hold on
     FVmin_l0{i} = double(subs(FVmin_tmp, {l_0, xi_0}, {l0_range(i), xi0_range(i)}));
-    FVmax_l0{i} = double(subs(FVmax_tmp, {l_0, xi_0}, {l0_range(i), xi0_range(i)}));
+    FVmax_l0{i} = real(double(subs(FVmax_tmp, {l_0, xi_0}, {l0_range(i), xi0_range(i)})));
     [~, idx] = findpeaks(FVmax_l0{i});
     x_range_eff = x_range(idx:end);
     FVmin_l0{i} = FVmin_l0{i}(idx:end);
@@ -214,7 +214,7 @@ for i = 1:length(l0_range)
     subplot(2,1,1); hold on
     plot(xr / l0_range(i), Uel_xmax{i}, 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
     addlabels("$x_{MAX} / l_0$ [-]", "$U_{el}$ [J]", "$x_{MAX} / l_0$ vs $U_{el}$")
-    legend('Location', 'southeast')
+    legend('Location', 'best')
 
     subplot(2,1,2); hold on
     plot(xr / l0_range(i), uel_xmax{i}, 'LineWidth', 1.5)

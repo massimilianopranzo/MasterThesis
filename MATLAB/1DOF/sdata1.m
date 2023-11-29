@@ -93,6 +93,11 @@ function [newexpr] = sdata1(expr, varargin)
             idx_subs = 0;
             subsvars = [];
         end
+        
+        if ~isempty(find(subsvars == x))
+                idx = find(subsvars == x);
+                subsvars(idx) = [];
+        end
 
         if ~isempty(exceptvars) && ~isempty(subsvars) && ~isempty(setdiff(string(subsvars), string(exceptvars)))
             subsvars = string(setdiff(string(subsvars), string(exceptvars), 'stable'));
@@ -104,9 +109,7 @@ function [newexpr] = sdata1(expr, varargin)
                     str = str + subsvars(i) + ", ";
                 end
             end
-            error("The variables " + str + " have been already substituted by 'except'.");
-        
-            
+            error("The variables " + str + " have been already substituted by 'except'.");    
         end
 
     else
