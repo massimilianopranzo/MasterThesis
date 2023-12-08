@@ -162,98 +162,143 @@ myxline(double(x_max), "x_{MAX}");
 legend('FontWeight','bold', 'Location','northwest') 
 addlabels("x [m]", "C(x) [F]", "x - F(x) | Different def. condition")
 
-
-%% F(x): Plane strain varying l_0, plane strain
-ratio_xi0_l0 = sdata1(xi_0 / l_0);
+%% U(x), u(x): Plane strain varying l_0 and xi_0
 l0_range = double(sdata1(l_0) * (0.5:0.5:1.5));
-xi0_range = ratio_xi0_l0 * l0_range;
+x_range = cell(size(l0_range));
+C_l0 = sdata1(pstrain.C, 'except', l_0);
+Vmax_l0 = sdata1(pstrain.Vmax, 'except', l_0);
+C_vec = cell(size(l0_range)); C_minval = zeros(size(l0_range)); C_maxval = zeros(size(l0_range));
+Vmax_vec = cell(size(l0_range)); Vmax_vectmp = cell(size(l0_range)); V_vec = cell(size(l0_range));
+V_minstr = cell(size(l0_range)); V_maxstr = cell(size(l0_range));
+Q_vec = cell(size(l0_range)); Q_vectmp = cell(size(l0_range)); 
+Q_maxstr = cell(size(l0_range)); Q_minstr = cell(size(l0_range));
 
-FVmin_l0 = cell(size(l0_range));
-FVmax_l0 = cell(size(l0_range));
-
-close all
-
+myfig(10,"Q - V");
 for i = 1:length(l0_range)
+    x_range{i} = (double(sdata2(tf_0)) + [logspace(-9, -6, 100) 2e-6:2e-5:(0.5 * l0_range(i))]);
+    Vmax_vectmp{i} = double(subs(Vmax_l0, {x, l_0}, {x_range{i}, l0_range(i)}));
     
-    x_range = (double(sdata2(tf_0)) + [logspace(-9, -6, 100) 2e-6:2e-5:(0.5 * l0_range(i))])';
+    C_vec{i} = double(subs(C_l0, {x, l_0}, {x_range{i}, l0_range(i)}));
+    C_minval(i) = min(C_vec{i});
+    C_maxval(i) = max(C_vec{i});
     
-    % FVmin_tmp = sdata1(pstrain.FVmin, 'except', {l_0, xi_0}, 's', {x, x_range});
-    % FVmax_tmp = sdata1(pstrain.FVmax, 'except', {l_0, xi_0}, 's', {x, x_range});
-    FVmin_l0{i} = double(sdata1(pstrain.FVmin, 'except', l_0, 's', {l_0, l0_range(i), x, x_range}));
-    FVmax_l0{i} = real(double(sdata1(pstrain.FVmax, 'except', l_0, 's', {l_0, l0_range(i), x, x_range})));
-    % [~, idx] = findpeaks(FVmax_l0{i});
-    % x_range_eff = x_range(idx:end);
-    % FVmin_l0{i} = FVmin_l0{i}(idx:end);
-    % FVmax_l0{i} = FVmax_l0{i}(idx:end);
-    x_range_eff = x_range;
-    figure(10); hold on
-    subplot(3,1,i); hold on
-    plot(x_range_eff, FVmin_l0{i}, 'DisplayName', '$V_{MIN}$')
-    plot(x_range_eff, FVmax_l0{i}, '--', 'DisplayName', '$V_{MAX}$')
-    plot_xminmax(x_range(1), x_range(end));
-    addlabels("x [m]", "F(x) [N]", ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
+    Q_vectmp{i} = C_vec{i} .* Vmax_vectmp{i};
+    st = abs(mean(diff(Q_vectmp{i})));
+    Q_vec{i} = min(Q_vectmp{i}):st:max(Q_vectmp{i}); 
+    Vmax_vec{i} = sort(interp1(Q_vec{i}, Vmax_vectmp{i}, Q_vec{i}), 'ascend');
+    Q_maxstr{i} = 0 : min(Q_vectmp{i}) / (length(Q_vec{i})-1) : min(Q_vectmp{i}); % steeper since the slope is 1 / Cmin
+    Q_minstr{i} = unique([Q_maxstr{i} Q_vec{i}]); % less steep since the slope is 1 / Cmax
+    
+    % Padding
+    Vmax_vec{i} = [Vmax_vec{i}(1) * ones(1, length(Q_minstr{i}) - length(Q_vec{i})) Vmax_vec{i}];
+    Q_vec{i} = [Q_vec{i}(1) * ones(1, length(Q_minstr{i}) - length(Q_vec{i})) Q_vec{i}];
+    Q_maxstr{i} = [Q_maxstr{i} Q_maxstr{i}(end) * ones(1, length(Q_minstr{i}) - length(Q_maxstr{i}))];
+    
+    V_maxstr{i} = Q_maxstr{i} / C_minval(i); 
+    V_minstr{i} = Q_minstr{i} / C_maxval(i);
+    subplot(2, 2, i + 0.5 * (i == 3))
+    hold on
+    plot(Q_vec{i}, Vmax_vec{i}, 'DisplayName', "$V_{BD}$", "LineWidth", 1.5)
+    plot(Q_minstr{i}, V_minstr{i}, 'DisplayName', "Min. str.", "LineWidth", 1.5)
+    plot(Q_maxstr{i}, V_maxstr{i}, '--' ,'DisplayName', "Max. str.", "LineWidth", 1.5)
+    if i == 3, legend('Location','best'); end
+    addlabels("Q [A]", "V [V]", ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
     xlim("padded"); ylim("padded")
-    legend('FontWeight','bold', 'Location','north')
-
-    Uasint(i) = sdata2(epsilon_f * epsilon_p * pstrain.w * l0_range(i) / (epsilon_p * tf_0 + 2 * epsilon_f * tp_0) * 6200^2 / 2);
-    Uel_xmax{i} = cumtrapz(x_range_eff, FVmax_l0{i} - FVmin_l0{i});
-    uel_xmax{i} = Uel_xmax{i} ./ double(sdata1(pstrain.Vol, 'except', {l_0, xi_0}, 's', {x, x_range, l_0, l0_range(i), xi_0, xi0_range(i)}));
-    xr = x_range_eff(1:st:end);
-
-    figure(11); hold on
-    subplot(2,1,1); hold on
-    plot(xr / l0_range(i), Uel_xmax{i}, plcol(i), 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
-    plot(xr / l0_range(i), Uasint(i) * ones(size(xr)), [plcol(i), '--'], 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
-    addlabels("$x_{MAX} / l_0$ [-]", "$U_{el}$ [J]", "$x_{MAX} / l_0$ vs $U_{el}$")
-    legend('Location', 'best')
-
-    subplot(2,1,2); hold on
-    plot(xr / l0_range(i), uel_xmax{i}, plcol(i), 'LineWidth', 1.5)
-    addlabels("$x_{MAX} / l_0$ [-]", "$u_{el} [J/m^3]$", "$x_{MAX} / l_0$ vs $u_{el}$")
 end
 
-%% Energy and energy density
+%%
 Uel_xmax = cell(size(l0_range));
 uel_xmax = cell(size(l0_range));
-Vol_tmp = sdata1(pstrain.Vol);
-st = 1;
-myfig(11, "x_max / l_0 - Uel | uel"); hold on
+U_asint = cell(size(l0_range));
+x_range_eff = cell(size(l0_range));
+
+ratio_xi0_l0 = double(sdata1(xi_0 / l_0));
+xi0_range = ratio_xi0_l0 * l0_range;
+Vol_l0xi0 = sdata1(pstrain.Vol, 'except', {l_0, xi_0}, 's', {l_0, l0_range, xi_0, xi0_range});
+
+
+myfig(11, 'x - U(x) and u(x) varying l_0 and xi_0')
 for i = 1:length(l0_range)
-    Uasint(i) = sdata2(epsilon_f * epsilon_p * pstrain.w * l0_range(i) / (epsilon_p * tf_0 + 2 * epsilon_f * tp_0) * 6200^2 / 2);
-    % k = 0;
-    % if double(sdata1(l_0)) ~= l0_range(i)
-        % for j = 1:st:length(x_range_eff)
-        %     Uel_xmax{i}(j - k * st + k) = trapz(x_range_eff(1:st:j), FVmax_l0{i}(1:st:j),1) - trapz(x_range_eff(1:st:j), FVmin_l0{i}(1:st:j),1);
-        %     uel_xmax{i}(j - k * st + k) = Uel_xmax{i}(j - k * st + k) / subs(Vol_tmp, {x, l_0, xi_0}, {x_range_eff(j), l0_range(i), xi0_range(i)});
-        %     k = k + 1;   
-        % end
-        Uel_xmax{i} = cumtrapz(x_range_eff, FVmax_l0{i} - FVmin_l0{i});
-        uel_xmax{i} = Uel_xmax{i} ./ subs(pstrain.Vol, {x, l_0, xi_0}, {x_range_eff, l0_range(i), xi0_range(i)});
-        xr = x_range_eff(1:st:end);
-    % else
-    %     Uel_xmax{i} = res_1dof_pstrain.Uel_xmax(res_1dof_pstrain.x_range_eff <= x_range_eff(end));
-    %     uel_xmax{i} = res_1dof_pstrain.uel_xmax(res_1dof_pstrain.x_range_eff <= x_range_eff(end));
-    %     xr = res_1dof_pstrain.x_range_eff(res_1dof_pstrain.x_range_eff <= x_range_eff(end));
-    % end
+    U_asint{i} = double(sdata1(1 / 2 * C_maxval(i) .* Vmax_vec{i}.^2));
+    Uel_xmax{i} = cumtrapz(Q_maxstr{i}, V_maxstr{i}) + cumtrapz(Q_vec{i}, Vmax_vec{i}) - cumtrapz(Q_minstr{i}, V_minstr{i});
+    x_range_eff{i} = linspace(x_range{i}(1), x_range{i}(end), length(Uel_xmax{i}));
+    Voltmp = double(subs(Vol_l0xi0(i), {l_0, xi_0, x}, {l0_range(i), xi0_range(i), x_range_eff{i}}));
+    uel_xmax{i} = Uel_xmax{i} ./ Voltmp;
+
     subplot(2,1,1); hold on
-    plot(xr / l0_range(i), Uel_xmax{i}, plcol(i), 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
-    plot(xr / l0_range(i), Uasint(i) * ones(size(xr)), [plcol(i), '--'], 'LineWidth', 1.5, 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
+    plot(x_range_eff{i} / l0_range(i), Uel_xmax{i}, plcol(i))
+    plot(x_range_eff{i} / l0_range(i), U_asint{i}, [plcol(i) '--'])
     addlabels("$x_{MAX} / l_0$ [-]", "$U_{el}$ [J]", "$x_{MAX} / l_0$ vs $U_{el}$")
-    legend('Location', 'best')
 
     subplot(2,1,2); hold on
-    plot(xr / l0_range(i), uel_xmax{i}, plcol(i), 'LineWidth', 1.5)
+    plot(x_range_eff{i} / l0_range(i), uel_xmax{i}, plcol(i), 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e') ' $|$ ' '$\xi_0$ = ' num2str(xi0_range(i), '%.3e')])
     addlabels("$x_{MAX} / l_0$ [-]", "$u_{el} [J/m^3]$", "$x_{MAX} / l_0$ vs $u_{el}$")
-end
-%%
-for i = 1:length(l0_range)
-    x_range = (double(sdata2(tf_0)) + [logspace(-9, -6, 100) 2e-6:2e-5:(0.5 * l0_range(i))])';
-    Vol_l0(i) = double(sdata1(pstrain.Vol, 'except', {l_0, xi_0}, 's', {x, x_range(end), l_0, l0_range(i), xi_0, xi0_range(i)}));
+    legend('Location', 'best')
 end
 
-figure(20)
-plot(l0_range, Vol_l0)
-%%
+
+%% F(x), U(x), u(x): Plane strain varying l_0 and xi_0
+% l0_range = double(sdata1(l_0) * (0.5:0.5:1.5));
+% x_range = cell(size(l0_range));
+% FVmin_l0 = cell(size(l0_range));
+% FVmax_l0 = cell(size(l0_range));
+% 
+% myfig(10, 'x - F(x) varying l_0')
+% for i = 1:length(l0_range)
+%     x_range{i} = (double(sdata2(tf_0)) + [logspace(-9, -6, 100) 2e-6:2e-5:(0.5 * l0_range(i))])';
+%     FVmin_l0{i} = double(sdata1(pstrain.FVmin, 'except', l_0, 's', {l_0, l0_range(i), x, x_range{i}}));
+%     FVmax_l0{i} = real(double(sdata1(pstrain.FVmax, 'except', l_0, 's', {l_0, l0_range(i), x, x_range{i}})));
+% 
+%     subplot(3,1,i); hold on
+%     plot(x_range{i}, FVmin_l0{i}, 'DisplayName', '$V_{MIN}$')
+%     plot(x_range{i}, FVmax_l0{i}, '--', 'DisplayName', '$V_{MAX}$')
+%     plot_xminmax(x_range{i}(1), x_range{i}(end));
+%     addlabels("x [m]", "F(x) [N]", ['$l_0$ = ' num2str(l0_range(i), '%.3e')])
+%     xlim("padded"); ylim("padded")
+%     legend('FontWeight','bold', 'Location','north')
+% end
+% 
+% ratio_xi0_l0 = double(sdata1(xi_0 / l_0));
+% xi0_range = ratio_xi0_l0 * l0_range;
+% Volt_xmax = sdata1(pstrain.Vmax, 'except', l_0, 's', {l_0, l0_range, x, cellfun(@(x) x(end), x_range)});
+% 
+% Cmax = sdata1(epsilon_f * epsilon_p * pstrain.w / (epsilon_p * tf_0 + 2 * epsilon_f * pstrain.t_p), 'except', l_0, 's', {l_0, l0_range, x, cellfun(@(x) x(1), x_range)}) .* l0_range;
+% U_asint = double(sdata1(1 / 2 * Cmax .* Volt_xmax.^2));
+% % subs(epsilon_f * epsilon_p * pstrain.w .* l0_range ./ (epsilon_p * tf_0 + 2 * epsilon_f * pstrain.t_p .* Volt_xmax.^2 / 2), x, cellfun(@(x) x(end), x_range))
+% Uel_xmax = cell(size(l0_range));
+% uel_xmax = cell(size(l0_range));
+% Vol_l0xi0 = sdata1(pstrain.Vol, 'except', {l_0, xi_0}, 's', {l_0, l0_range, xi_0, xi0_range});
+% 
+% C_vec = sdata1(C, 'except', l_0, 's', {l_0, l0_range});
+% Vmax_vec = double(subs(sdata1(Vmax), x, x_range_eff));
+% Q_vec = C_vec .* Vmax_vec;
+% C_min_val = C_vec(end);
+% C_max_val = C_vec(1);
+% V_vec = linspace(0, min(Vmax_vec), 100);
+% Qmaxstr = double(V_vec * C_min_val);
+% Qminstr = double(V_vec * C_max_val);
+% 
+% trapz(Qmaxstr, V_vec) + trapz(sort(Q_vec,'ascend'), Vmax_vec) - trapz(Qminstr, V_vec)
+% 
+% myfig(11, 'x - U(x) and u(x) varying l_0 and xi_0')
+% for i = 1:length(l0_range) 
+%     C_vec{i} = sdata1(C, 'except', l_0, 's', {l_0, l0_range(i)})
+%     Vmax_vec{i} = sdata1(pstrain.Vmax, 'except', l_0, 's', {l_0, l0_range(i), x, x_range{i}});
+%     Uel_xmax{i} = cumtrapz(x_range{i}, FVmax_l0{i} - FVmin_l0{i});
+%     uel_xmax{i} = Uel_xmax{i} ./ double(subs(Vol_l0xi0(i), {l_0, xi_0, x}, {l0_range(i), xi0_range(i), x_range{i}}));
+% 
+%     subplot(2,1,1); hold on
+%     plot(x_range{i} / l0_range(i), Uel_xmax{i}, plcol(i))
+%     myyline(U_asint(i), 'U_{ASINT}', [plcol(i), '--'])
+%     addlabels("$x_{MAX} / l_0$ [-]", "$U_{el}$ [J]", "$x_{MAX} / l_0$ vs $U_{el}$")
+% 
+%     subplot(2,1,2); hold on
+%     plot(x_range{i} / l0_range(i), uel_xmax{i}, plcol(i), 'DisplayName', ['$l_0$ = ' num2str(l0_range(i), '%.3e') ' $|$ ' '$\xi_0$ = ' num2str(xi0_range(i), '%.3e')])
+%     addlabels("$x_{MAX} / l_0$ [-]", "$u_{el} [J/m^3]$", "$x_{MAX} / l_0$ vs $u_{el}$")
+%     legend('Location', 'best')
+% end
+
+
 
 
 
