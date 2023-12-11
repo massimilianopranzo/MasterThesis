@@ -115,5 +115,9 @@ function [newexpr] = sdata1(expr, varargin)
     else
         error("Unexpected number of arguments.");
     end
-        
+    
+    if isempty(symvar(newexpr))
+        newexpr = double(newexpr);
+    end
+            
 end
