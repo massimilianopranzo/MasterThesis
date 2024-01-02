@@ -15,6 +15,15 @@ CumTrapz::usage = "CumTrapz[x,y,n] gives a list of the same length of x containi
 MidArrow::usage = "MidArrow[dir] draws an arrowhead in the middle of a curve. Use it as graphicsobj/.MidArrow[dir].";
 
 
+GetVars::usage = "GetVars[expr] returns all the variables inside expr"
+
+
+ScientString::usage = "ScientString[n,dig] returns the number n in sicentific form with dig digits"
+
+
+DefColors::usage = "DefColors[n] retrieves the default color indexed by n"
+
+
 Begin["`Private`"];
 
 
@@ -28,6 +37,15 @@ CumTrapz[x_,y_]:=Module[{areas,cumarea},areas=Table[{((y[[i]]+y[[i+1]])Abs@(x[[i
 
 
 MidArrow[dir_]:=Line[x_]:>{Arrowheads[{{dir 0.05,0.5}}],Arrow[x]}
+
+
+GetVars[expr_]:=Union@Cases[expr,s_Symbol/;Not@NumericQ[s],{-1}]
+
+
+ScientString[n_,dig_]:=ToString[ScientificForm[n,dig],TraditionalForm]
+
+
+DefColors[n_]:=ColorData[97,"ColorList"][[n]]
 
 
 End[];
