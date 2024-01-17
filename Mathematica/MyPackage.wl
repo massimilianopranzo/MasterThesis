@@ -30,6 +30,9 @@ CombineVec::usage = "Combine[x,y] produces {{x1,y1},{x2,y2},...}"
 AddLegend::usage = "AddLegend[strarray_,xpos_:Left,ypos_:Top] create a framed line legend containg the string array placed at xpos and ypos"
 
 
+XLine::usage = "XLine[x,sty_:ColorData[97,ColorList][[1]]] produces a vertical line in x, optional style arguments can be given"
+
+
 Begin["`Private`"];
 
 
@@ -62,6 +65,9 @@ CombineVec[x_,y_]:=Transpose[{x,y}]
 
 
 AddLegend[strarray_,xpos_:Left,ypos_:Top]:=Placed[LineLegend[strarray,LegendFunction->(Framed[#,RoundingRadius->4,FrameStyle->Black,Background->White]&),LabelStyle->{FontSize->12,FontWeight->Bold}],{xpos,ypos}]
+
+
+XLine[x_,sty_:ColorData[97,"ColorList"][[1]]]:=Graphics[Join[Flatten@{sty},{InfiniteLine[{x,0},{0,1}]}]]
 
 
 End[];

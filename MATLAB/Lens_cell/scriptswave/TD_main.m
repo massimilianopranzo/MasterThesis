@@ -62,7 +62,8 @@ Bpto = 0;
 
 %% Dynamic simulation
 
-sim('Buoy_TD_model')
+% sim('Buoy_TD_model')
+sim('Piston.slx')
 
 figure;
 plot(Pos.Time,Pos.Data,'k')
