@@ -6,5 +6,5 @@ z2data = table2array(readtable('..\z2data.xls'));
 V1data = table2array(readtable('..\V1data.xls'));
 V2data = table2array(readtable('..\V2data.xls'));
 
-V1max = 50e3;
-V2max = 50e3;
+V1max = max(V1data);
+V2max = max(V2data);

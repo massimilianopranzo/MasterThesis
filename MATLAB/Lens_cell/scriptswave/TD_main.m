@@ -61,10 +61,28 @@ Kpto = 0;
 Bpto = 0; 
 
 %% Dynamic simulation
+% load grid data (z1, z2, Fs1, Fs2, V1, V2)
+data_grids;
 
-% sim('Buoy_TD_model')
-sim('Piston.slx')
+alpha_vec = linspace(0,1,15);
+res_sim = cell(1,length(alpha_vec));
+sim('Buoy_TD_model')
+for i = 1:length(alpha_vec)
+    alpha = alpha_vec(i);
+    res_sim{i} = sim('Piston.slx');
+end
+%%
+figure;
+hold on
+for k = 14:1:length(alpha_vec)
+    plot(res_sim{k}.Pos.Time,res_sim{k}.Pos.Data)
+end
 
+max_amp = cellfun(@(x) max(x.Pos.Data(x.Pos.Time > 10 * T)), res_sim, 'UniformOutput', true);
+
+figure;
+plot(alpha_vec, max_amp, 'o')
+%%
 figure;
 plot(Pos.Time,Pos.Data,'k')
 hold on 
@@ -87,3 +105,6 @@ else
 end
 
 
+%%
+figure;
+plot(Pos.Data,Vel.Data .* FG.Data)

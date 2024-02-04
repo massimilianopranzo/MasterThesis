@@ -39,7 +39,7 @@ Tn_ref = 2*pi/omega_nat_ref; % natural period
 
 %% Scaled buoy parameters (using Froude)
 
-d = SF*d_ref; % buoy draft 
+d = SF*d_ref; % buoy draft omega
 omega = SF^-0.5*omega_ref;
 M = SF^3*M_ref; % total mass 
 Mad = SF^3*Mad_ref;
@@ -78,4 +78,4 @@ hold on
 plot(omega,gamma,'k')
 grid on
 xlabel('omega (rad/s)')
-ylabel('Wave excitation coefficient \gamma (N/m)')
+ylabel('Wave excitation coefficient $\gamma$ (N/m)')
