@@ -18,6 +18,9 @@ MidArrow::usage = "MidArrow[dir] draws an arrowhead in the middle of a curve. Us
 GetVars::usage = "GetVars[expr] returns all the variables inside expr"
 
 
+GetStep::usage = "GetStep[list] returns the mean step of the list"
+
+
 ScientString::usage = "ScientString[n,dig] returns the number n in sicentific form with dig digits"
 
 
@@ -55,7 +58,10 @@ MidArrow[dir_]:=Line[x_]:>{Arrowheads[{{dir 0.05,0.5}}],Arrow[x]}
 GetVars[expr_]:=Union@Cases[expr,s_Symbol/;Not@NumericQ[s],{-1}]
 
 
-ScientString[n_,dig_]:=ToString[ScientificForm[n,dig],TraditionalForm]
+GetStep[vec_]:=Mean@Differences[vec]
+
+
+ScientString[n_,dig_:3]:=ToString[ScientificForm[n,dig],TraditionalForm]
 
 
 DefColors[n_]:=ColorData[97,"ColorList"][[n]]

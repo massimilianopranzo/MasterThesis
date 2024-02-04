@@ -1,3 +1,6 @@
 /Papers
 *.asv
 /GIF wecs
+/Images
+/Mathematica/Images
+*.mat
